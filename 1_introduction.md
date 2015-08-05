@@ -63,12 +63,12 @@ Today Spring Security enjoys a strong and active open source community. There ar
 
 
 ##发布版本号
+了解Spring Security 发布版本号如何工作是很有用的，他可以帮助你识别出工作（或缺乏的功能）涉及到参与迁移到项目的未来版本，每个发布使用3个整数，MAJOR.MINOR.PATCH(主版本.次要版本.补丁版本). 这样做的目的是主版本是不兼容的，API大范围的升级。次要版本应该保留大部分源代码和二进制兼容旧版本的次要版本，认为可能有一些设计变更和不兼容的更新。补丁版本应该向前向后完美兼容.包含一些bug和缺陷修复这些意外的改变.
 
-It is useful to understand how Spring Security release numbers work, as it will help you identify the effort (or lack thereof) involved in migrating to future releases of the project. Each release uses a standard triplet of integers: MAJOR.MINOR.PATCH. The intent is that MAJOR versions are incompatible, large-scale upgrades of the API. MINOR versions should largely retain source and binary compatibility with older minor versions, thought there may be some design changes and incompatible updates. PATCH level should be perfectly compatible, forwards and backwards, with the possible exception of changes which are to fix bugs and defects.
+在某种程度上，你受到变化的影响取决于你的代码是如何紧密集成的。如果你正在做大量定制，你更可能受到比简单的命名空间配置更大的影响。
 
-The extent to which you are affected by changes will depend on how tightly integrated your code is. If you are doing a lot of customization you are more likely to be affected than if you are using a simple namespace configuration.
 
-You should always test your application thoroughly before rolling out a new version.
+你应该总是推出一个新版本之前彻底测试你的应用程序。
 
 ##获取 Spring Security
 
@@ -118,7 +118,7 @@ pom.xml.
 </repositories>
 ```
 
-If you are using a milestone or release candidate version, you will need to ensure you have the Spring Milestone repository defined as shown below:
+如果你正在使用一个里程碑或者发布候选版本，你需要确保你所定义的Spring里程碑库，如下图所示：
 
 pom.xml. 
 
