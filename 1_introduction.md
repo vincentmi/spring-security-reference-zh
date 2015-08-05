@@ -42,17 +42,18 @@ Spring Security提供了基于Java EE的企业应用软件全面的安全服务�
 
 *表示由第三方提供
 
-Many independent software vendors (ISVs) adopt Spring Security because of this significant choice of flexible authentication models. Doing so allows them to quickly integrate their solutions with whatever their end clients need, without undertaking a lot of engineering or requiring the client to change their environment. If none of the above authentication mechanisms suit your needs, Spring Security is an open platform and it is quite simple to write your own authentication mechanism. Many corporate users of Spring Security need to integrate with "legacy" systems that don’t follow any particular security standards, and Spring Security is happy to "play nicely" with such systems.
+很多独立软件供应商，因为灵活的身份验证模式而选择Spring Security。这样做允许他们快速的集成到他们的终端客户需求的解决方案而不用进行大量工程或者改变客户的环境。如果上面的验证机制不符合你的需求，Spring Security 是一个开放的平台，要实现你自己的验证机制非常检查。Spring Security的许多企业用户需要与不遵循任何特定安全标准的“遗留”系统集成，Spring Security可以很好的与这类系统集成。
 
-Irrespective of the authentication mechanism, Spring Security provides a deep set of authorization capabilities. There are three main areas of interest - authorizing web requests, authorizing whether methods can be invoked, and authorizing access to individual domain object instances. To help you understand the differences, consider the authorization capabilities found in the Servlet Specification web pattern security, EJB Container Managed Security and file system security respectively. Spring Security provides deep capabilities in all of these important areas, which we’ll explore later in this reference guide.
+无论何种身份验证机制， Spring Security提供一套的授权功能。这里有三个主要的热点区域，授权web请求、授权方法是否可以被调用和授权访问单个域对象的实例。为了帮助让你分别了解这些差异，认识在Servlet规范网络模式安全的授权功能，EJB容器管理的安全性和文件系统的安全。Spring Security在这些重要的区域提供授权功能，我们将在手册的后面进行介绍。
 
 
-## History
-Spring Security began in late 2003 as "The Acegi Security System for Spring". A question was posed on the Spring Developers' mailing list asking whether there had been any consideration given to a Spring-based security implementation. At the time the Spring community was relatively small (especially compared with the size today!), and indeed Spring itself had only existed as a SourceForge project from early 2003. The response to the question was that it was a worthwhile area, although a lack of time currently prevented its exploration.
+## 历史
+Spring Security以“The Acegi Security System for Spring”的名字始于2013年晚些时候。一个问题提交到Spring开发者的邮件列表，询问是否已经有考虑一个基于Spring的安全性实现。那时候Spring 的社区相对较小（相对现在）。实际上Spring自己在2013年只是一个存在于SourceForge中的项目，这个问题的回答是，这是一个值得研究的领域，虽然目前时间的缺乏阻止了我们对它的探索。
 
-With that in mind, a simple security implementation was built and not released. A few weeks later another member of the Spring community inquired about security, and at the time this code was offered to them. Several other requests followed, and by January 2004 around twenty people were using the code. These pioneering users were joined by others who suggested a SourceForge project was in order, which was duly established in March 2004.
+考虑到这一点，一个简单的安全实现建成但是并没有发布。几周后，Spring社区的其他成员询问了安全性，这次这个代码被发送给他们。其他几个请求也跟随而来。到2014年1月大约有20人在使用这个代码。
+. These pioneering users were joined by others who suggested a SourceForge project was in order, which was duly established in March 2004.
 
-In those early days, the project didn’t have any of its own authentication modules. Container Managed Security was relied upon for the authentication process, with Acegi Security instead focusing on authorization. This was suitable at first, but as more and more users requested additional container support, the fundamental limitation of container-specific authentication realm interfaces became clear. There was also a related issue of adding new JARs to the container’s classpath, which was a common source of end user confusion and misconfiguration.
+在早些时候，这个项目没有任何自己的验证模块，身份验证过程依赖于容器管理的安全性和Acegi安全性。而不是专注于授权。开始的时候这很适合，但是越来越多的用户请求额外的容器支持。 the fundamental limitation of container-specific authentication realm interfaces became clear. There was also a related issue of adding new JARs to the container’s classpath, which was a common source of end user confusion and misconfiguration.
 
 Acegi Security-specific authentication services were subsequently introduced. Around a year later, Acegi Security became an official Spring Framework subproject. The 1.0.0 final release was published in May 2006 - after more than two and a half years of active use in numerous production software projects and many hundreds of improvements and community contributions.
 
@@ -61,19 +62,22 @@ Acegi Security became an official Spring Portfolio project towards the end of 20
 Today Spring Security enjoys a strong and active open source community. There are thousands of messages about Spring Security on the support forums. There is an active core of developers who work on the code itself and an active community which also regularly share patches and support their peers.
 
 
-##Release Numbering
+##发布版本号
+
 It is useful to understand how Spring Security release numbers work, as it will help you identify the effort (or lack thereof) involved in migrating to future releases of the project. Each release uses a standard triplet of integers: MAJOR.MINOR.PATCH. The intent is that MAJOR versions are incompatible, large-scale upgrades of the API. MINOR versions should largely retain source and binary compatibility with older minor versions, thought there may be some design changes and incompatible updates. PATCH level should be perfectly compatible, forwards and backwards, with the possible exception of changes which are to fix bugs and defects.
 
 The extent to which you are affected by changes will depend on how tightly integrated your code is. If you are doing a lot of customization you are more likely to be affected than if you are using a simple namespace configuration.
 
 You should always test your application thoroughly before rolling out a new version.
 
-##Getting Spring Security
-You can get hold of Spring Security in several ways. You can download a packaged distribution from the main Spring Security page, download individual jars from the Maven Central repository (or a SpringSource Maven repository for snapshot and milestone releases) or, alternatively, you can build the project from source yourself.
+##获取 Spring Security
 
-### Usage with Maven
+你可以通过几种方式获取Spring Security。 你可以从Spring Security页面下载一个分发包。从Maven库下载分离的jar文件。另外你也可以从源代码自己编译。
 
-A minimal Spring Security Maven set of dependencies typically looks like the following:
+### 使用Maven
+
+一个最小的Spring Security Maven依赖通常和下面的的类似:
+
 pom.xml. 
 
 ```xml
@@ -92,13 +96,14 @@ pom.xml.
 </dependencies>
 
 ```
-If you are using additional features like LDAP, OpenID, etc. you will need to also include the appropriate Section 1.4.3, “Project Modules”.
+
+如果你使用了额外的功能比如 LDAP,OpenID,等等，你需要包含适当的模块，查阅  Section 1.4.3, “Project Modules”.
 
 ###Maven Repositories
 
-All GA releases (i.e. versions ending in .RELEASE) are deployed to Maven Central, so no additional Maven repositories need to be declared in your pom.
+所有GA发布版本 (版本号以 .RELEASE结尾) 都被部署到Maven Central, 所以不需要在你的 pom里设置额外的库
 
-If you are using a SNAPSHOT version, you will need to ensure you have the Spring Snapshot repository defined as shown below:
+如果你使用了一个 SNAPSHOT 版本, 你需要确认你设置了Snapshot库，如下:
 
 pom.xml. 
 
