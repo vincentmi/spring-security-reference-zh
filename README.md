@@ -14,9 +14,7 @@ Copies of this document may be made for your own use and for distribution to oth
 
 ###翻译
 
- 学习Spring 顺便翻译了。
+ 学习Spring 顺便翻译了。翻译有不当的地方请见谅。
 
-Vincent Mi  
-
-http://vnzmi.com  
+Vincent Mi   http://vnzmi.com  
 miwenshu#gmail.com  
