@@ -11,3 +11,5 @@
 * [架构和实现](03_architecture_and_implementation.md)
 * [测试](04_testing.md)
 * [Web应用安全](05_web_application_security.md)
+
+Spring Security 是一个强大的高可定制性的验证和访问控制框架。他是基于Spring的应用程序事实上的安全标准。
