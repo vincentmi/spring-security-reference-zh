@@ -82,7 +82,7 @@ pom.xml.
 
 ```xml
 <dependencies>
-<!-- ... other dependency elements ... -->
+<!-- ... 其他依赖元素.. -->
 <dependency>
 	<groupId>org.springframework.security</groupId>
 	<artifactId>spring-security-web</artifactId>
@@ -99,7 +99,7 @@ pom.xml.
 
 如果你使用了额外的功能比如 LDAP,OpenID,等等，你需要包含适当的模块，查阅  Section 1.4.3, “Project Modules”.
 
-###Maven Repositories
+###Maven 仓库
 
 所有GA发布版本 (版本号以 .RELEASE结尾) 都被部署到Maven Central, 所以不需要在你的 pom里设置额外的库
 
@@ -109,7 +109,7 @@ pom.xml.
 
 ```xml
 <repositories>
-<!-- ... possibly other repository elements ... -->
+<!-- ... 其他仓库元素 ... -->
 <repository>
 	<id>spring-snapshot</id>
 	<name>Spring Snapshot Repository</name>
@@ -124,7 +124,7 @@ pom.xml.
 
 ```xml
 <repositories>
-<!-- ... possibly other repository elements ... -->
+<!-- ... 其他仓库元素 ... -->
 <repository>
 	<id>spring-milestone</id>
 	<name>Spring Milestone Repository</name>
@@ -133,3 +133,154 @@ pom.xml.
 </repositories>
 ```
 
+
+##Spring 框架 Bom
+
+Spring Security是针对Spring框架 4.1.6.RELEASE建立的，但是应该快要与4.0.x正常工作。很多用户都会有这个问题，Spring Security传递依赖解析到Spring框架4.1.6.RELEASE这可能会导致奇怪的classpath问题。
+
+规避这个问题的一种方式是在你的pom文件的```<depencyManagement>```部分包含所有的Spring框架模块。另一种方法是像下面这样在```pom.xml```中包含```spring-framework-bom```:
+
+pom.xml. 
+
+```xml
+<dependencyManagement>
+	<dependencies>
+	<dependency>
+		<groupId>org.springframework</groupId>
+		<artifactId>spring-framework-bom</artifactId>
+		<version>4.1.6.RELEASE</version>
+		<type>pom</type>
+		<scope>import</scope>
+	</dependency>
+	</dependencies>
+</dependencyManagement>
+```
+
+这样将确保Spring Security传递的所有依赖都使用Spring 4.16.RELEASE的模块。
+
+>这种方式使用了Maven的 "bill of materials" (BOM) 概念， Maven 2.0.9+可用.如果想了解Maven如何解析依赖请参考Maven的依赖机制文档的介绍。 
+>
+
+###使用Gradle
+
+最小的Gradle一组典型的依赖如下:
+
+build.gradle. 
+
+```gradle
+dependencies {
+	compile 'org.springframework.security:spring-security-web:4.0.2.RELEASE'
+	compile 'org.springframework.security:spring-security-config:4.0.2.RELEASE'
+}
+```
+
+如果你使用了LDAP,OpenID等等，你需要包含相应的模块，参阅 1.4.3, “Project Modules”.
+
+###Gradle 仓库
+
+所有的GA发布版本（以.RELEASE结尾）都部署到了Maven Central库，所以使用mavenCentral()就足够了。
+
+build.gradle. 
+
+```gradle
+repositories {
+	mavenCentral()
+}
+```
+
+
+如果你正在使用了SNAPSHOT 版本, 你需要确保你使用了Spring的Snapshot库，定义如下:
+
+build.gradle. 
+
+```gradle
+repositories {
+	maven { url 'https://repo.spring.io/snapshot' }
+}
+```
+
+如果你正在使用里程碑或者发布候选版。你需要确认你使用了Spring的里程碑仓库，定义如下:
+
+build.gradle. 
+
+```gradle
+repositories {
+	maven { url 'https://repo.spring.io/milestone' }
+}
+```
+
+### 使用Spring 4.0.x 和Gradle
+
+解析依赖传递时Gradle默认会使用最新的版本。这意味着当在Spring 4.1.6.RELEASE下使用Spring Security 4.0.2.RELEASE我们不需要做额外的工作。然而有时出现一些问题，最好使用Gradle的ResolutionStrategy 按照下面的方式来处理：
+
+build.gradle. 
+
+```gradle
+configurations.all {
+	resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+		if (details.requested.group == 'org.springframework') {
+			details.useVersion '4.1.6.RELEASE'
+		}
+	}
+}
+```
+这样将确保所有Spring Security传递的依赖使用Spring 4.1.6.RELEASE 的模块.
+
+>这个例子使用Gradle 1.9，但可能需要在gradle的未来版本中进行修改，因为这是在一个Gradle的孵化功能。
+>
+
+###项目模块
+
+在Spring Security 3.0,代码库被分割到单独的jar，这样可以更清楚的分隔不同功能区域和第三方依赖。如果你使用Maven构建你的项目，那么这些都是需要你添加到你的pom.xml中的。甚至如果你没有使用Maven,我们建议你请求pom.xml文件来获取第三方依赖和版本。另一个好办法是检查示例应用程序的库。
+
+####核心模块   spring-security-core.jar
+
+包含核心的验证和访问控制类和接口，远程支持和基本的配置API.任何使用Spring Security的应用程序都需要这个模块。支持独立应用程序、远程客户端、服务层方法安全和JDBC用户配置。包含以下顶层包：
+
+```java
+ org.springframework.security.core
+ org.springframework.security.access
+ org.springframework.security.authentication
+ org.springframework.security.provisioning
+```
+
+####远程调用 - spring-security-remoting.jar
+
+提供与Spring Remoting的集成. 通常你不需要这个模块，除非你正使用Spring Remoting编写远程客户端。主要的包是 ```org.springframework.security.remoting```.
+
+####网页 spring-security-web.jar
+
+包括过滤器和网站安全相关的基础代码。使用Servlet API的任何应用依赖他。如果你需要Spring Security网页验证服务和基于URL的访问控制你需要这个模块。主包名为```org.springframework.security.web```.
+
+####配置 spring-security-config.jar
+
+包含安全命令空间的解析代码。如果你使用Spring Security XML命令空间进行配置你需要包含这个模块。主包名```org.springframework.security.config```. 没有类需要被应用程序直接使用。
+
+####LDAP  spring-security-ldap.jar
+
+LDAP 验证和配置代码. 如果你需要使用LDAP验证和管理LDAP用户实体，你需要这个模块。主包名```org.springframework.security.ldap```.
+
+ACL 访问控制列表- spring-security-acl.jar
+
+ACL专门的领域对象的实现. 用来在你的应用程序中应用安全到特定的领域对象实例。主包名为```org.springframework.security.acls```.
+
+CAS  spring-security-cas.jar
+
+Spring Security的CAS 客户端集成. 如果你想用CAS的SSO服务器使用Spring Security 网页验证 需要该模块。顶部的包是 ```org.springframework.security.cas```.
+
+OpenID   spring-security-openid.jar
+
+OpenID 网页验证支持. 使用外部的OpenID 服务器验证用户. ```org.springframework.security.openid```. 需要 OpenID4Java.
+
+###签出源代码
+
+因为Spring Security是一个开源项目，我们强烈建议您使用Git签出源代码。这可以让你完全访问所有示例应用程序，你可以轻松地构建最先进的最新版本的项目。 有了项目的源代码对debug有非常大的帮助. 异常堆栈跟踪不再是模糊的黑盒问题，你可以沿着他找出到底发生了什么. 源代码是终极文档，通常也是最简答的找出项目实际是如何工作的地方。
+
+
+要获取项目源代码，请使用以下git命令：
+
+```shell
+git clone https://github.com/spring-projects/spring-security.git
+```
+
+这可以让你在本地机器上访问到整个项目的历史记录（包括所有版本和分支）。
