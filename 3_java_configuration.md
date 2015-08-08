@@ -55,7 +55,225 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
 ### AbstractSecurityWebApplicationInitializer
 
-下一步是在war里注册 springSecurityFilterChain. This can be done in Java Configuration with Spring’s WebApplicationInitializer support in a Servlet 3.0+ environment. Not suprisingly, Spring Security provides a base class AbstractSecurityWebApplicationInitializer that will ensure the springSecurityFilterChain gets registered for you. The way in which we use AbstractSecurityWebApplicationInitializer differs depending on if we are already using Spring or if Spring Security is the only Spring component in our application.
+下一步是在war里注册 springSecurityFilterChain. 这可以通过Spring在Servlet 3.0+环境中对WebApplicationInitializer的支持进行Java配置，不出所料，Spring Security提供了基本的抽象类```AbstractSecurityWebApplicationInitializer```,这可以确保springSecurityFilterChain被注册。我们使用```AbstractSecurityWebApplicationInitializer```的不同方式取决于你是已经在使用Spring框架还是只使用了Spring Security。
 
-- Section 3.1.2, “AbstractSecurityWebApplicationInitializer without Existing Spring” - Use these instructions if you are not using Spring already
-- Section 3.1.3, “AbstractSecurityWebApplicationInitializer with Spring MVC” - Use these instructions if you are already using Spring
+- Section 3.1.2, “AbstractSecurityWebApplicationInitializer 不与Spring一起使用” - 使用这个说明如果你没有使用Spring框架
+- Section 3.1.3, “AbstractSecurityWebApplicationInitializer 与Spring一起使用” - 如果你正在使用Spring框架使用这个说明
+
+#### AbstractSecurityWebApplicationInitializer 不与Spring一起使用
+
+如果你没有使用Spring MVC 或Spring , 你需要传递```SecurityConfig```到超类来确保配置被使用，你可以参考下面的例子：
+
+```java
+import org.springframework.security.web.context.*;
+
+public class SecurityWebApplicationInitializer
+	extends AbstractSecurityWebApplicationInitializer {
+
+	public SecurityWebApplicationInitializer() {
+		super(SecurityConfig.class);
+	}
+}
+```
+
+```SecurityWebApplicationInitializer ```将会做下面的事情:
+
+- 自动注册为你的应用程序的每个URL注册```springSecurityFilterChain``` 过滤器
+- 添加一个 ```ContextLoaderListener```用来载入```SecurityConfig```.
+
+#### AbstractSecurityWebApplicationInitializer 与Spring一起使用
+如果我们在应用程序的其他地方已经使用了Spring,那么我们已经有了一个```WebApplicationInitializer```用来载入Spring的配置。如果我们使用上面的配置将会得到一个错误。所以我们应该使用已经存在的```ApplicationContext```来注册Spring Security.举个例子，如果我们使用Spring MVC我们的```SecurityWebApplicationInitializer```应该看起来和下面的差不多：
+
+```java
+import org.springframework.security.web.context.*;
+
+public class SecurityWebApplicationInitializer
+	extends AbstractSecurityWebApplicationInitializer {
+
+}
+```
+
+这会简单的只为你的应用程序的所有URL注册springSecurityFilterChain过滤器。然后我们需要确保这个Security配置被载入到我们已经存在的```ApplicationInitializer```. 例如, 如果你使用Spring MVC他应该被加入到  getRootConfigClasses()
+
+```java
+public class MvcWebApplicationInitializer extends
+		AbstractAnnotationConfigDispatcherServletInitializer {
+
+	@Override
+	protected Class<?>[] getRootConfigClasses() {
+		return new Class[] { SecurityConfig.class };
+	}
+
+	// ... other overrides ...
+}
+```
+
+### HttpSecurity
+
+到目前为止我们的 SecurityConfig 只包含了关于如何验证我们的用户的信息。Spring Security周末知道我们想对所有的用户进行验证？Spring Security周末知道我们需要支持基于表单的验证？原因是```WebSecurityConfigurerAdapter```在 ```configure(HttpSecurity http)``` 方法提供了一个默认的配置，看起来和下面类似：
+
+```java
+protected void configure(HttpSecurity http) throws Exception {
+	http
+		.authorizeRequests()
+			.anyRequest().authenticated()
+			.and()
+		.formLogin()
+			.and()
+		.httpBasic();
+}
+```
+
+上面的默认配置:
+
+- 确保我们应用中的所有请求都需要用户被认证
+- 允许用户进行基于表单的认证
+- 允许用户使用HTTP基本验证进行认证
+
+你可以看到这个配置和下面的XML命名配置相似：
+
+```xml
+<http>
+	<intercept-url pattern="/**" access="authenticated"/>
+	<form-login />
+	<http-basic />
+</http>
+```
+
+Java配置使用and()方法相当于XML标签的关闭，这样允许我们继续配置父类节点。如果你阅读代码他很合理，我想配置请求验证，并使用表单和HTTP基本身份验证进行登录。
+
+然而，Java配置有不同的默认URL和参数，当你自定义用户登录页时需要牢记这一点。让我们的URL更加RESTful ,另外不要那么明显的观察出我们在使用Spring Security这样帮助我们避免信息泄露。比如：
+
+
+```java
+protected void configure(HttpSecurity http) throws Exception {
+	http
+		.authorizeRequests()
+			.anyRequest().authenticated()
+			.and()
+		.formLogin()
+			.loginPage("/login") //注1
+			.permitAll();        //注2
+}
+```
+ 1. 指定登陆页的路径 
+ 2. 我们必须允许所有用户访问我们的登录页 (例如未验证的用户) ，这个formLogin().permitAll() 方法允许基于表单登录的所有URL的所有用户的访问。
+
+一个我们当前配置使用的JSP实现的页面如下：
+
+ 
+ >下面这个登陆页是我们的当前配置，如果不符合我们的要求我们可以很容易的更新我们的配置。
+ >
+ 
+ 
+ 
+```jsp
+	 <c:url value="/login" var="loginUrl"/>
+	<form action="${loginUrl}" method="post">   <!-- 1 -->
+		<c:if test="${param.error != null}">     <!-- 2  -->
+			<p>
+				Invalid username and password.
+			</p>
+		</c:if>
+		<c:if test="${param.logout != null}">    <!-- 3  -->
+			<p>
+				You have been logged out.
+			</p>
+		</c:if>
+		<p>
+			<label for="username">Username</label>
+			<input type="text" id="username" name="username"/><!-- 4  -->
+		</p>
+		<p>
+			<label for="password">Password</label>
+			<input type="password" id="password" name="password"/><!-- 5  -->	</p>
+		<input type="hidden"  
+			name="${_csrf.parameterName}"
+			value="${_csrf.token}"/><!-- 6  -->
+		<button type="submit" class="btn">Log in</button>
+	</form>  
+```
+
+
+ 1. 一个POST请求到/login用来验证用户
+ 2. 如果参数有错误，验证尝试失败
+ 3. 如果请求参数logout存在则登出
+ 4. 登录名参数必须被命名为username
+ 5. 密码参数必须被命名为password
+ 6. CSRF参数，了解更多查阅 后续“包含CSRF Token” 和 "跨站请求伪造(CSRF)"相关章节
+
+
+## 验证请求
+
+我们的例子中要求用户进行身份验证并且在我们应用程序的每个URL这样做。我们可以通过给```http.authorizeRequests()```添加多个子节点来指定多个定制需求到我们的URL。例如：
+
+```java
+protected void configure(HttpSecurity http) throws Exception {
+	http
+		.authorizeRequests()  //1
+			.antMatchers("/resources/**", "/signup", "/about").permitAll() //2
+			.antMatchers("/admin/**").hasRole("ADMIN") //3
+			.antMatchers("/db/**").access("hasRole('ADMIN') and hasRole('DBA')")            4
+			.anyRequest().authenticated()  //5
+			.and()
+		// ...
+		.formLogin();
+}
+
+```
+
+1. ```http.authorizeRequests() ```方法有多个子节点，每个macher按照他们的声明顺序执行。
+2. 我们指定任何用户都可以访问的多个URL模式。任何用户都可以访问URL以 "/resources/",开头的URL ,以及"/signup",  "/about".
+3. 以"/admin/" 开头的URL只能由拥有 "ROLE_ADMIN"角色的用户访问. 请注意我们使用HasRole方法，没有使用ROLE_前缀。
+4. 任何以/db/开头的URL需要用户同时具有"ROLE_ADMIN" 和 "ROLE_DBA". 和上面一样我们的hasRole方法也没有使用ROLE_前缀。
+5. 尚未匹配的任何URL要求用户进行身份验证
+
+## 处理登出
+
+当使用```WebSecurityConfigurerAdapter```时注销功能会被自动运用上，默认是通过访问```/logout```这个URL将用户登出，该操作执行以下动作：
+
+- 使Session无效
+- 清除所有已经配置的RememberMe认证
+- 清除```SecurityContextHolder```
+- 跳转到``` /login?success```
+
+和登录功能类似，你也有不同的选项来定制你的注销功能。
+
+```java
+protected void configure(HttpSecurity http) throws Exception {
+	http
+		.logout()  // 1
+			.logoutUrl("/my/logout")// 2
+			.logoutSuccessUrl("/my/index") // 3
+			.logoutSuccessHandler(logoutSuccessHandler)//4
+			.invalidateHttpSession(true)  // 5
+			.addLogoutHandler(logoutHandler) // 6
+			.deleteCookies(cookieNamesToClear) //7
+			.and()
+		...
+}
+```
+
+
+ 1. 提供注销支持，使用```WebSecurityConfigurerAdapter. ```是会自动被应用。
+ 2. 设置触发注销操作的URL(默认是logout),如果CSRF保护被启用（默认是启用的）的话这个请求的方式被限定为POST.请查阅javaDoc相关信息。
+ 3. 注销之后跳转的URL.默认是```/login?logout```,具体查看JaveDoc文档
+ 4. 让你设置定制的```LogoutSuccessHandler```,如果指定了这个选项那么```logoutSuccessUrl()```的设置会被忽略，请查阅JavaDoc文档
+ 5. 指定是否在注销时让HttpSession无效。默认设置为true,在内部配置```SecurityContextLogoutHandler```选项。请参阅JavaDoc
+ 6. 添加一个```logoutHandler```,默认```SecurityContextLogoutHandler```会被添加为最后一个logoutHandler.
+ 7. 允许指定在注销成功时将移除的cookie.这是一个显示的添加一个```CookieClearingLogoutHandler```的快捷方式。
+
+ >注销也可以通过XML命名空间进行配置，请参阅Spring Security XML命令空间相关文档获取更多细节。 
+ 
+ 一般来说，为了定制注销功能，你可以添加```LogoutHandler```以及```LogoutSuccessHandler```的实现。对于许多常见场景，当使用流式API时，这些处理器会在幕后进行添加。
+ 
+ ### LogoutHandler
+ 
+Generally, LogoutHandler implementations indicate classes that are able to participate in logout handling. They are expected to be invoked to perform necessary cleanup. As such they should not throw exceptions. Various implementations are provided:
+
+
+
+
+
+
+
