@@ -268,10 +268,42 @@ protected void configure(HttpSecurity http) throws Exception {
  一般来说，为了定制注销功能，你可以添加```LogoutHandler```以及```LogoutSuccessHandler```的实现。对于许多常见场景，当使用流式API时，这些处理器会在幕后进行添加。
  
  ### LogoutHandler
+ 一般来说，```LogoutHandler```的实现类可以参与到注销处理中。他们被用来执行必要的清理，因而他们不应该抛出错误，我们提供各种实现：
  
-Generally, LogoutHandler implementations indicate classes that are able to participate in logout handling. They are expected to be invoked to perform necessary cleanup. As such they should not throw exceptions. Various implementations are provided:
+- [PersistentTokenBasedRememberMeServices](http://docs.spring.io/spring-security/site/docs/current/apidocs/org/springframework/security/web/authentication/rememberme/PersistentTokenBasedRememberMeServices.html)
+- [TokenBasedRememberMeServices](http://docs.spring.io/spring-security/site/docs/current/apidocs/org/springframework/security/web/authentication/rememberme/TokenBasedRememberMeServices.html)
+- [CookieClearingLogoutHandler](http://docs.spring.io/spring-security/site/docs/current/apidocs/org/springframework/security/web/authentication/logout/CookieClearingLogoutHandler.html)
+- [CsrfLogoutHandler](http://docs.spring.io/spring-security/site/docs/current/apidocs/org/springframework/security/web/csrf/CsrfLogoutHandler.html)
+- [SecurityContextLogoutHandler](http://docs.spring.io/spring-security/site/docs/current/apidocs/org/springframework/security/web/authentication/logout/SecurityContextLogoutHandler.html)
 
+请查看 ["Remember-Me接口和实现"](#Remember-Me Interfaces_and_Implementations)获取详情。
 
+流式API提供了调用相应的```LogoutHandler```实现的快捷方式，而不用直接提供```LogoutHandler```的实现。例如：```deleteCookies()``` 允许指定注销成功时要删除的一个或者多个cookie.这是一个添加```CookieClearingLogoutHandler```的快捷方式。
+
+###LogoutSuccessHandler
+```LogoutSuccessHandler```被```LogoutFiler```在成功注销后调用，用来进行重定向或者转发相应的目的地。注意这个接口与LogoutHandler几乎一样，但是可以抛出异常。
+
+下面是 提供的一些实现：
+
+- [SimpleUrlLogoutSuccessHandler](http://docs.spring.io/spring-security/site/docs/current/apidocs/org/springframework/security/web/authentication/logout/SimpleUrlLogoutSuccessHandler.html)
+- HttpStatusReturningLogoutSuccessHandler
+
+和前面提到的一样，你不需要直接指定```SimpleUrlLogoutSuccessHandler```.而使用流式API通过设置```logoutSuccessUrl()```快捷的进行设置。这样会隐式的设置```SimpleUrlLogoutSuccessHandler```. 注销成功后将重定向到设置的URL地址。默认的地址是```/login?logout```.
+
+在REST API场景中```HttpStatusReturningLogoutSuccessHandler``` 会进行一些有趣的改变。```LogoutSuccessHandler```允许你设置一个返回给客户端的HTTP状态码（默认返回200）来替换重定向到URL这个动作.
+
+###进一步的注销相关的参考(TODO)
+
+- [处理注销](#Logout_Handling)
+- [测试注销](#Testing_Logout)
+- [HttpServletRequest.logout()](#HttpServletRequest.logout)
+- [章节 “Remember-Me 接口和实现”](#Remember-Me Interfaces_and_Implementations)
+- [注销的CSRF警告](#Logging_Out)
+- [单点注销(CAS协议)](#Single_Logout)
+- [注销的XML命名空间章节](#logout_element )
+
+##Authentication
+Thus far we have only taken a look at the most basic authentication configuration. Let’s take a look at a few slightly more advanced options for configuring authentication.
 
 
 
