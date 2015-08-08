@@ -298,7 +298,7 @@ protected void configure(HttpSecurity http) throws Exception {
 - [测试注销](#Testing_Logout)
 - [HttpServletRequest.logout()](#HttpServletRequest.logout)
 - [章节 “Remember-Me 接口和实现”](#Remember-Me Interfaces_and_Implementations)
-- [注销的CSRF警告](#Logging_Out)
+- [注销的CSRF说明](#Logging_Out)
 - [单点注销(CAS协议)](#Single_Logout)
 - [注销的XML命名空间章节](#logout_element )
 
