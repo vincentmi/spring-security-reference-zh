@@ -281,12 +281,15 @@ protected void configure(HttpSecurity http) throws Exception {
 流式API提供了调用相应的```LogoutHandler```实现的快捷方式，而不用直接提供```LogoutHandler```的实现。例如：```deleteCookies()``` 允许指定注销成功时要删除的一个或者多个cookie.这是一个添加```CookieClearingLogoutHandler```的快捷方式。
 
 ###LogoutSuccessHandler
+
 ```LogoutSuccessHandler```被```LogoutFiler```在成功注销后调用，用来进行重定向或者转发相应的目的地。注意这个接口与LogoutHandler几乎一样，但是可以抛出异常。
+
 
 下面是 提供的一些实现：
 
 - [SimpleUrlLogoutSuccessHandler](http://docs.spring.io/spring-security/site/docs/current/apidocs/org/springframework/security/web/authentication/logout/SimpleUrlLogoutSuccessHandler.html)
 - HttpStatusReturningLogoutSuccessHandler
+
 
 和前面提到的一样，你不需要直接指定```SimpleUrlLogoutSuccessHandler```.而使用流式API通过设置```logoutSuccessUrl()```快捷的进行设置。这样会隐式的设置```SimpleUrlLogoutSuccessHandler```. 注销成功后将重定向到设置的URL地址。默认的地址是```/login?logout```.
 
