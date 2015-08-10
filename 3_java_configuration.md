@@ -302,8 +302,261 @@ protected void configure(HttpSecurity http) throws Exception {
 - [单点注销(CAS协议)](#Single_Logout)
 - [注销的XML命名空间章节](#logout_element )
 
-##Authentication
-Thus far we have only taken a look at the most basic authentication configuration. Let’s take a look at a few slightly more advanced options for configuring authentication.
+##验证
+到现在为止我们只看了一下基本的验证配置，让给我们看看一些稍微高级点的身份验证配置选项。
+
+###内存中的身份验证
+我们已经看到了一个单用户配置到内存验证的示例，下面是配置多个用户的例子：
+
+```java
+@Autowired
+public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
+	auth
+		.inMemoryAuthentication()
+			.withUser("user").password("password").roles("USER").and()
+			.withUser("admin").password("password").roles("USER", "ADMIN");
+}
+```
+
+###JDBC 验证
+
+You can find the updates to suppport JDBC based authentication. The example below assumes that you have already defined a DataSource within your application. The jdbc-jc sample provides a complete example of using JDBC based authentication.
+
+```java
+@Autowired
+private DataSource dataSource;
+
+@Autowired
+public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
+	auth
+		.jdbcAuthentication()
+			.dataSource(dataSource)
+			.withDefaultSchema()
+			.withUser("user").password("password").roles("USER").and()
+			.withUser("admin").password("password").roles("USER", "ADMIN");
+}
+```
+
+### LDAP 验证
+You can find the updates to suppport LDAP based authentication. The ldap-jc sample provides a complete example of using LDAP based authentication.
+
+```java
+@Autowired
+private DataSource dataSource;
+
+@Autowired
+public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
+	auth
+		.ldapAuthentication()
+			.userDnPatterns("uid={0},ou=people")
+			.groupSearchBase("ou=groups");
+}
+```
+
+the example above uses the following LDIF and an embedded Apache DS LDAP instance.
+
+users.ldif. 
+
+```
+dn: ou=groups,dc=springframework,dc=org
+objectclass: top
+objectclass: organizationalUnit
+ou: groups
+
+dn: ou=people,dc=springframework,dc=org
+objectclass: top
+objectclass: organizationalUnit
+ou: people
+
+dn: uid=admin,ou=people,dc=springframework,dc=org
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+cn: Rod Johnson
+sn: Johnson
+uid: admin
+userPassword: password
+
+dn: uid=user,ou=people,dc=springframework,dc=org
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+cn: Dianne Emu
+sn: Emu
+uid: user
+userPassword: password
+
+dn: cn=user,ou=groups,dc=springframework,dc=org
+objectclass: top
+objectclass: groupOfNames
+cn: user
+uniqueMember: uid=admin,ou=people,dc=springframework,dc=org
+uniqueMember: uid=user,ou=people,dc=springframework,dc=org
+
+dn: cn=admin,ou=groups,dc=springframework,dc=org
+objectclass: top
+objectclass: groupOfNames
+cn: admin
+uniqueMember: uid=admin,ou=people,dc=springframework,dc=org
+```
+
+##Multiple HttpSecurity
+
+We can configure multiple HttpSecurity instances just as we can have multiple <http> blocks. The key is to extend the WebSecurityConfigurationAdapter multiple times. For example, the following is an example of having a different configuration for URL’s that start with /api/.
+
+```java
+@EnableWebSecurity
+public class MultiHttpSecurityConfig {
+	@Autowired
+	public void configureGlobal(AuthenticationManagerBuilder auth) { 1
+		auth
+			.inMemoryAuthentication()
+				.withUser("user").password("password").roles("USER").and()
+				.withUser("admin").password("password").roles("USER", "ADMIN");
+	}
+
+	@Configuration
+	@Order(1)                                                        2
+	public static class ApiWebSecurityConfigurationAdapter extends WebSecurityConfigurerAdapter {
+		protected void configure(HttpSecurity http) throws Exception {
+			http
+				.antMatcher("/api/**")                               3
+				.authorizeRequests()
+					.anyRequest().hasRole("ADMIN")
+					.and()
+				.httpBasic();
+		}
+	}
+
+	@Configuration                                                   4
+	public static class FormLoginWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
+
+		@Override
+		protected void configure(HttpSecurity http) throws Exception {
+			http
+				.authorizeRequests()
+					.anyRequest().authenticated()
+					.and()
+				.formLogin();
+		}
+	}
+}
+```
+
+1
+Configure Authentication as normal
+2
+Create an instance of WebSecurityConfigurerAdapter that contains @Order to specify which WebSecurityConfigurerAdapter should be considered first.
+3
+The http.antMatcher states that this HttpSecurity will only be applicable to URLs that start with /api/
+4
+Create another instance of WebSecurityConfigurerAdapter. If the URL does not start with /api/ this configuration will be used. This configuration is considered after ApiWebSecurityConfigurationAdapter since it has an @Order value after 1 (no @Order defaults to last).
+
+##Method Security
+
+From version 2.0 onwards Spring Security has improved support substantially for adding security to your service layer methods. It provides support for JSR-250 annotation security as well as the framework���s original @Secured annotation. From 3.0 you can also make use of new expression-based annotations. You can apply security to a single bean, using the intercept-methods element to decorate the bean declaration, or you can secure multiple beans across the entire service layer using the AspectJ style pointcuts.
+
+### EnableGlobalMethodSecurity
+We can enable annotation-based security using the @EnableGlobalMethodSecurity annotation on any @Configuration instance. For example, the following would enable Spring Security’s @Secured annotation.
+
+```java
+@EnableGlobalMethodSecurity(securedEnabled = true)
+public class MethodSecurityConfig {
+// ...
+}
+```
+
+Adding an annotation to a method (on an class or interface) would then limit the access to that method accordingly. Spring Security’s native annotation support defines a set of attributes for the method. These will be passed to the AccessDecisionManager for it to make the actual decision:
+
+```java
+public interface BankService {
+
+@Secured("IS_AUTHENTICATED_ANONYMOUSLY")
+public Account readAccount(Long id);
+
+@Secured("IS_AUTHENTICATED_ANONYMOUSLY")
+public Account[] findAccounts();
+
+@Secured("ROLE_TELLER")
+public Account post(Account account, double amount);
+}
+```
+
+Support for JSR-250 annotations can be enabled using
+
+```java
+@EnableGlobalMethodSecurity(jsr250Enabled = true)
+public class MethodSecurityConfig {
+// ...
+}
+```
+
+These are standards-based and allow simple role-based constraints to be applied but do not have the power Spring Security’s native annotations. To use the new expression-based syntax, you would use
+
+```java
+@EnableGlobalMethodSecurity(prePostEnabled = true)
+public class MethodSecurityConfig {
+// ...
+}
+```
+
+and the equivalent Java code would be
+
+```java
+public interface BankService {
+
+@PreAuthorize("isAnonymous()")
+public Account readAccount(Long id);
+
+@PreAuthorize("isAnonymous()")
+public Account[] findAccounts();
+
+@PreAuthorize("hasAuthority('ROLE_TELLER')")
+public Account post(Account account, double amount);
+}
+```
+
+### GlobalMethodSecurityConfiguration
+Sometimes you may need to perform operations that are more complicated than are possible with the @EnableGlobalMethodSecurity annotation allow. For these instances, you can extend the GlobalMethodSecurityConfiguration ensuring that the @EnableGlobalMethodSecurity annotation is present on your subclass. For example, if you wanted to provide a custom MethodSecurityExpressionHander, you could use the following configuration:
+
+```java
+@EnableGlobalMethodSecurity(prePostEnabled = true)
+public class MethodSecurityConfig extends GlobalMethodSecurityConfiguration {
+	@Override
+	protected MethodSecurityExpressionHandler createExpressionHandler() {
+		// ... create and return custom MethodSecurityExpressionHandler ...
+		return expressionHander;
+	}
+}
+```
+
+
+For additional information about methods that can be overriden, refer to the GlobalMethodSecurityConfiguration Javadoc.
+
+##Post Processing Configured Objects
+
+Spring Security’s Java Configuration does not expose every property of every object that it configures. This simplifies the configuration for a majority of users. Afterall, if every property was exposed, users could use standard bean configuration.
+
+While there are good reasons to not directly expose every property, users may still need more advanced configuration options. To address this Spring Security introduces the concept of an ObjectPostProcessor which can used to modify or replace many of the Object instances created by the Java Configuration. For example, if you wanted to configure the filterSecurityPublishAuthorizationSuccess property on FilterSecurityInterceptor you could use the following:
+
+```java
+@Override
+protected void configure(HttpSecurity http) throws Exception {
+	http
+		.authorizeRequests()
+			.anyRequest().authenticated()
+			.withObjectPostProcessor(new ObjectPostProcessor<FilterSecurityInterceptor>() {
+				public <O extends FilterSecurityInterceptor> O postProcess(
+						O fsi) {
+					fsi.setPublishAuthorizationSuccess(true);
+					return fsi;
+				}
+			});
+}
+```
+
 
 
 
