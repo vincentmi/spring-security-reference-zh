@@ -1,15 +1,16 @@
 #安全命名空间配置
 
-##Introduction
-
-Namespace configuration has been available since version 2.0 of the Spring framework. It allows you to supplement the traditional Spring beans application context syntax with elements from additional XML schema. You can find more information in the Spring Reference Documentation. A namespace element can be used simply to allow a more concise way of configuring an individual bean or, more powerfully, to define an alternative configuration syntax which more closely matches the problem domain and hides the underlying complexity from the user. A simple element may conceal the fact that multiple beans and processing steps are being added to the application context. For example, adding the following element from the security namespace to an application context will start up an embedded LDAP server for testing use within the application:
+##简介
+命名空间配置在Spring框架的2.0版本就可以使用了，他允许你通过额外的XML架构元素补充传统的Spring bean应用程序上下文。你可以从Spring的参考文档找到更多信息。命名空间元素可以简单的允许配置单个bean,或者更强大的，定义一个可选的配置语法，这样更贴近问题域并且对用户隐藏背后的复杂性。一个简单的元素可以隐藏多个bean 和添加到应用程序上下文的多个处理步骤。例如：从安全命令空间添加后面的元素到应用程序上下文将开始一个LDAP服务到应用程序内用于测试：
 
 ```xml
 <security:ldap-server />
 ```
 
 
-This is much simpler than wiring up the equivalent Apache Directory Server beans. The most common alternative configuration requirements are supported by attributes on the ldap-server element and the user is isolated from worrying about which beans they need to create and what the bean property names are. [1]. Use of a good XML editor while editing the application context file should provide information on the attributes and elements that are available. We would recommend that you try out the SpringSource Tool Suite as it has special features for working with standard Spring namespaces.
+这比配置一个Apache目录服务器bean简单得多。
+
+The most common alternative configuration requirements are supported by attributes on the ldap-server element and the user is isolated from worrying about which beans they need to create and what the bean property names are. [1]. Use of a good XML editor while editing the application context file should provide information on the attributes and elements that are available. We would recommend that you try out the SpringSource Tool Suite as it has special features for working with standard Spring namespaces.
 
 To start using the security namespace in your application context, you need to have the spring-security-config jar on your classpath. Then all you need to do is add the schema declaration to your application context file:
 
