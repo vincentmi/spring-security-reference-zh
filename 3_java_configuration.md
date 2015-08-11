@@ -322,8 +322,7 @@ public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception 
 ```
 
 ###JDBC 验证
-
-You can find the updates to suppport JDBC based authentication. The example below assumes that you have already defined a DataSource within your application. The jdbc-jc sample provides a complete example of using JDBC based authentication.
+你可以找到一些更新来支持基于JDBC的验证。下面的例子假设你已经在应用程序中定义好了```DateSource``` , jdbc-jc示例提供了一个完整的基于JDBC的验证。
 
 ```java
 @Autowired
@@ -341,7 +340,7 @@ public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception 
 ```
 
 ### LDAP 验证
-You can find the updates to suppport LDAP based authentication. The ldap-jc sample provides a complete example of using LDAP based authentication.
+你可以找到一些更新来支持基于LDAP的身份验证，ldap-jc提供一个完成的使用基于LDAP的身份验证的示例。
 
 ```java
 @Autowired
@@ -356,7 +355,7 @@ public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception 
 }
 ```
 
-the example above uses the following LDIF and an embedded Apache DS LDAP instance.
+上面的例子中使用以下LDIF和嵌入式Apache DS LDAP实例。
 
 users.ldif. 
 
@@ -405,15 +404,15 @@ cn: admin
 uniqueMember: uid=admin,ou=people,dc=springframework,dc=org
 ```
 
-##Multiple HttpSecurity
+##多个HttpSecurity
+我们可以配置多个HttpSecurity实例，就像我们可以有多个<http>块抑郁。关键在于对```WebSecurityConfigurationAdapter```进行多次扩展。例如下面是一个对```/api/```开头的URL进行的不同的设置。
 
-We can configure multiple HttpSecurity instances just as we can have multiple <http> blocks. The key is to extend the WebSecurityConfigurationAdapter multiple times. For example, the following is an example of having a different configuration for URL’s that start with /api/.
 
 ```java
 @EnableWebSecurity
 public class MultiHttpSecurityConfig {
 	@Autowired
-	public void configureGlobal(AuthenticationManagerBuilder auth) { 1
+	public void configureGlobal(AuthenticationManagerBuilder auth) { //1
 		auth
 			.inMemoryAuthentication()
 				.withUser("user").password("password").roles("USER").and()
@@ -421,11 +420,11 @@ public class MultiHttpSecurityConfig {
 	}
 
 	@Configuration
-	@Order(1)                                                        2
+	@Order(1)  // 2
 	public static class ApiWebSecurityConfigurationAdapter extends WebSecurityConfigurerAdapter {
 		protected void configure(HttpSecurity http) throws Exception {
 			http
-				.antMatcher("/api/**")                               3
+				.antMatcher("/api/**")  // 3
 				.authorizeRequests()
 					.anyRequest().hasRole("ADMIN")
 					.and()
@@ -433,7 +432,7 @@ public class MultiHttpSecurityConfig {
 		}
 	}
 
-	@Configuration                                                   4
+	@Configuration // 4
 	public static class FormLoginWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
 
 		@Override
@@ -448,21 +447,16 @@ public class MultiHttpSecurityConfig {
 }
 ```
 
-1
-Configure Authentication as normal
-2
-Create an instance of WebSecurityConfigurerAdapter that contains @Order to specify which WebSecurityConfigurerAdapter should be considered first.
-3
-The http.antMatcher states that this HttpSecurity will only be applicable to URLs that start with /api/
-4
-Create another instance of WebSecurityConfigurerAdapter. If the URL does not start with /api/ this configuration will be used. This configuration is considered after ApiWebSecurityConfigurationAdapter since it has an @Order value after 1 (no @Order defaults to last).
+1. 配置正常的验证
+2. 创建一个 ```WebSecurityConfigurerAdapter``` ，包含一个```@Order```注解，用来指定哪一个```WebSecurityConfigurerAdapter```更优先。
+3. ``` http.antMatcher ```指出，这个```HttpSecurity```只应用到以```/api/```开头的URL上。
+4. 创建另外一个```WebSecurityConfigurerAdapter```实例。用于不以```/api/```开头的URL，这个配置的顺序在 ```ApiWebSecurityConfigurationAdapter```之后，因为他没有指定```@Order```值 (没有指定```@Order```默认会被放到最后).
 
-##Method Security
-
-From version 2.0 onwards Spring Security has improved support substantially for adding security to your service layer methods. It provides support for JSR-250 annotation security as well as the framework���s original @Secured annotation. From 3.0 you can also make use of new expression-based annotations. You can apply security to a single bean, using the intercept-methods element to decorate the bean declaration, or you can secure multiple beans across the entire service layer using the AspectJ style pointcuts.
+##方法安全
+从2.0开始Spring Security对服务层的方法的安全有了实质性的改善。他提供对JSR-250的注解安全支持象框架原生的@Secured注解一样好。从3.0开始你也可以使用新的基于表达式的注解。你可以应用安全到单独的bean,使用拦截方法元素去装饰Bean声明，或者你可以在整个服务层使用AspectJ风格的切入点保护多个bean。
 
 ### EnableGlobalMethodSecurity
-We can enable annotation-based security using the @EnableGlobalMethodSecurity annotation on any @Configuration instance. For example, the following would enable Spring Security’s @Secured annotation.
+我们可以在任何使用```@Configuration```的实例上，使用```@EnableGlobalMethodSecurity ```注解来启用基于注解的安全性。例如下面会启用Spring 的 @Secured注解.
 
 ```java
 @EnableGlobalMethodSecurity(securedEnabled = true)
@@ -470,8 +464,7 @@ public class MethodSecurityConfig {
 // ...
 }
 ```
-
-Adding an annotation to a method (on an class or interface) would then limit the access to that method accordingly. Spring Security’s native annotation support defines a set of attributes for the method. These will be passed to the AccessDecisionManager for it to make the actual decision:
+添加一个注解到一个方法（或者一个类或者接机）会限制对相应方法的访问。Spring Security的原生注解支持定义了一套用于该方法的属性。这些将被传递到```AccessDecisionManager``` 来做实际的决定：
 
 ```java
 public interface BankService {
@@ -487,7 +480,7 @@ public Account post(Account account, double amount);
 }
 ```
 
-Support for JSR-250 annotations can be enabled using
+使用如下代码启用JSR-250注解的支持
 
 ```java
 @EnableGlobalMethodSecurity(jsr250Enabled = true)
@@ -496,7 +489,7 @@ public class MethodSecurityConfig {
 }
 ```
 
-These are standards-based and allow simple role-based constraints to be applied but do not have the power Spring Security’s native annotations. To use the new expression-based syntax, you would use
+这些都是基于标准的，并允许应用简单的基于角色的约束，但是没有Spring Security的本地注解的能力。要使用新的基于表达式的语法，你可以使用：
 
 ```java
 @EnableGlobalMethodSecurity(prePostEnabled = true)
@@ -505,7 +498,7 @@ public class MethodSecurityConfig {
 }
 ```
 
-and the equivalent Java code would be
+和响应的Java代码如下：
 
 ```java
 public interface BankService {
@@ -522,7 +515,8 @@ public Account post(Account account, double amount);
 ```
 
 ### GlobalMethodSecurityConfiguration
-Sometimes you may need to perform operations that are more complicated than are possible with the @EnableGlobalMethodSecurity annotation allow. For these instances, you can extend the GlobalMethodSecurityConfiguration ensuring that the @EnableGlobalMethodSecurity annotation is present on your subclass. For example, if you wanted to provide a custom MethodSecurityExpressionHander, you could use the following configuration:
+有时候你可能需要执行一些比```@ EnableGlobalMethodSecurity```注解允许的更复杂的操作。对于这些情况，你可以扩展 GlobalMethodSecurityConfiguration确保```@EnableGlobalMethodSecurity ```注解出现在你的子类。例如：如果你想提供一个定制的```MethodSecurityExpressionHander```，你可以使用下面的配置：
+
 
 ```java
 @EnableGlobalMethodSecurity(prePostEnabled = true)
@@ -535,14 +529,14 @@ public class MethodSecurityConfig extends GlobalMethodSecurityConfiguration {
 }
 ```
 
+关于可以被重载的方法的更多信息，请参考GlobalMethodSecurityConfiguration的java文档。
 
-For additional information about methods that can be overriden, refer to the GlobalMethodSecurityConfiguration Javadoc.
+##已配置对象的后续处理
 
-##Post Processing Configured Objects
+Spring Security的Java配置没有公开每个配置对象的每一个属性，这简化了广大用户的配置。毕竟如果要配置每一个属性，用户可以使用标准的Bean配置。
 
-Spring Security’s Java Configuration does not expose every property of every object that it configures. This simplifies the configuration for a majority of users. Afterall, if every property was exposed, users could use standard bean configuration.
+虽然有一些很好的理由不直接暴露所有属性，用户可能任然需要更多高级配置，为了解决这个Spring Security引入了 ```ObjectPostProcessor``` 概念，用来修改或替换Java配置的对象实例。例如：如果你想在```FilterSecurityInterceptor```里配置```filterSecurityPublishAuthorizationSuccess```属性，你可以像下面一样：
 
-While there are good reasons to not directly expose every property, users may still need more advanced configuration options. To address this Spring Security introduces the concept of an ObjectPostProcessor which can used to modify or replace many of the Object instances created by the Java Configuration. For example, if you wanted to configure the filterSecurityPublishAuthorizationSuccess property on FilterSecurityInterceptor you could use the following:
 
 ```java
 @Override
