@@ -8,11 +8,10 @@
 ```
 
 
-这比配置一个Apache目录服务器bean简单得多。
+这比配置一个Apache目录服务器bean简单得多。最常见的替代配置需求是 ```ldap-server```元素的属性支持，用户不用担心他们要创建的bean的属性名称（注：你可以从[Chapter 26, LDAP 身份验证](#LDAP_Authentication)找到如何使用```ldap-server``` 元素的更多信息 ）。当编辑应用的Context文件时良好的XML编辑器应该可以提供可用的属性和元素的信息。我们建议你尝试使用[SpringSource Tool Suite](http://www.springsource.com/products/sts)，它具有与标准Spring 命名空间工作的特别的功能。
 
-The most common alternative configuration requirements are supported by attributes on the ldap-server element and the user is isolated from worrying about which beans they need to create and what the bean property names are. [1]. Use of a good XML editor while editing the application context file should provide information on the attributes and elements that are available. We would recommend that you try out the SpringSource Tool Suite as it has special features for working with standard Spring namespaces.
+为了在你的应用程序Context中使用安全命名空间，你需要将```spring-security-config ``` jar包含到你的classpath中。然后在你的Context文件中加入以下的结构声明：
 
-To start using the security namespace in your application context, you need to have the spring-security-config jar on your classpath. Then all you need to do is add the schema declaration to your application context file:
 
 ```xml
 <beans xmlns="http://www.springframework.org/schema/beans"
@@ -25,9 +24,7 @@ xsi:schemaLocation="http://www.springframework.org/schema/beans
 	...
 </beans>
 ```
-
-
-In many of the examples you will see (and in the sample) applications, we will often use "security" as the default namespace rather than "beans", which means we can omit the prefix on all the security namespace elements, making the content easier to read. You may also want to do this if you have your application context divided up into separate files and have most of your security configuration in one of them. Your security application context file would then start like this
+在很多示例（包括示例应用程序）中你将会看到，我们经常使用```security```作为默认的命名空间而不是使用```beans```,这样我们可以在所有安全命名空间中忽略前缀，使得内容更加容易阅读。如果你的的应用程序Context被分割成单独的文件，大部分的安全配置被放到一个文件中，你可能也想这样做。你的安全应用Context文件应该像下面的一样：
 
 ```xml
 <beans:beans xmlns="http://www.springframework.org/schema/security"
@@ -41,5 +38,4 @@ xsi:schemaLocation="http://www.springframework.org/schema/beans
 </beans:beans>
 ```
 
-
-We’ll assume this syntax is being used from now on in this chapter.
+我们假设在这一章节我们都使用这种语法。
