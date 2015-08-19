@@ -6,7 +6,7 @@
   * [Spring Security 4 新特性](2_whats_new_in_spring_security_4.md)
   * [Java配置](3_java_configuration.md)
     * [基础的网站安全 Java配置](3.1_hello_web_security_java_configuration.md)
-    * [HttpSecurity](3.2_ httpsecurity.md)
+    * [HttpSecurity](3.2_httpsecurity.md)
     * [Java配置和表单登录](3.3_ java_configuration_and_form_login.md)
     * [验证请求](3.4_authorize_requests.md)
     * [处理登出](3.5_handling_logouts.md)
