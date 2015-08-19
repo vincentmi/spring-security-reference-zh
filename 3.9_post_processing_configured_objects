@@ -1,0 +1,23 @@
+#已配置对象的后续处理
+
+Spring Security的Java配置没有公开每个配置对象的每一个属性，这简化了广大用户的配置。毕竟如果要配置每一个属性，用户可以使用标准的Bean配置。
+
+虽然有一些很好的理由不直接暴露所有属性，用户可能任然需要更多高级配置，为了解决这个Spring Security引入了 ```ObjectPostProcessor``` 概念，用来修改或替换Java配置的对象实例。例如：如果你想在```FilterSecurityInterceptor```里配置```filterSecurityPublishAuthorizationSuccess```属性，你可以像下面一样：
+
+
+```java
+@Override
+protected void configure(HttpSecurity http) throws Exception {
+	http
+		.authorizeRequests()
+			.anyRequest().authenticated()
+			.withObjectPostProcessor(new ObjectPostProcessor<FilterSecurityInterceptor>() {
+				public <O extends FilterSecurityInterceptor> O postProcess(
+						O fsi) {
+					fsi.setPublishAuthorizationSuccess(true);
+					return fsi;
+				}
+			});
+}
+```
+
