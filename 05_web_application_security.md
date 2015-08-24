@@ -1,0 +1,3 @@
+#Web应用安全
+
+Most Spring Security users will be using the framework in applications which make user of HTTP and the Servlet API. In this part, we’ll take a look at how Spring Security provides authentication and access-control features for the web layer of an application. We’ll look behind the facade of the namespace and see which classes and interfaces are actually assembled to provide web-layer security. In some situations it is necessary to use traditional bean configuration to provide full control over the configuration, so we’ll also see how to configure these classes directly without the namespace.
