@@ -1,6 +1,6 @@
 #Java配置
 
-Java配置的支持主要在Spring框架的3.1加入。Spring Security 从3.2开始加入java配置支持，这让用户而不用任何XML更简单的配置Spring Security.
+Java配置的支持主要在Spring框架的3.1加入。Spring Security 从3.2开始加入java配置支持，这让用户不使用任何XML用更简单方式配置Spring Security.
 
 如果你熟悉第4章，安全命名空间配置，你应该找到它和Java的安全配置支持之间的相当多的相似之处。
 

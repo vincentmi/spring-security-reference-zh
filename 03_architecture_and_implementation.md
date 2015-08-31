@@ -1,3 +1,3 @@
 #架构和实现
 
-Once you are familiar with setting up and running some namespace-configuration based applications, you may wish to develop more of an understanding of how the framework actually works behind the namespace facade. Like most software, Spring Security has certain central interfaces, classes and conceptual abstractions that are commonly used throughout the framework. In this part of the reference guide we will look at some of these and see how they work together to support authentication and access-control within Spring Security.
+一旦你熟悉了如何设置和运行一些基于命名空间的配置的应用程序，你可能希望了解在命名空间后面这个框架实际的是如何工作的。像大多数软件一样，Spring Security有一些重要的接口和类和一些贯穿整个框架的概念。在参考指南的这部分，我们将看看其中的一部分，看看他们如何协同工作来为Spring Security提供身份验证和访问控制的支持。
