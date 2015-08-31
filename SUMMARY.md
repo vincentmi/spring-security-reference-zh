@@ -24,7 +24,7 @@
   * [应用程序示例](5_sample_application.md)
   * [Spring Security 社区](6_spring_security_community.md)
 * [架构和实现](03_architecture_and_implementation.md)
- * 技术预览
+ * 技术预览(7_technical_overview.md)
   * [运行时环境](7.1_runtime_environment.md)
   * [核心组件](7.2_core_components.md)
 * [测试](04_testing.md)
