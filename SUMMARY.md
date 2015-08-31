@@ -29,6 +29,5 @@
    * [技术预览](7_technical_overview.md)
    * [核心组件](7.2_core_components.md)
    * new
-* [测试](04_testing.md)
 * [Web应用安全](05_web_application_security.md)
 
